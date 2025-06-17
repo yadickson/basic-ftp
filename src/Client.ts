@@ -21,6 +21,10 @@ const fsOpen = promisify(open)
 const fsClose = promisify(close)
 const fsUnlink = promisify(unlink)
 
+export interface EnableCommandOptions {
+    utf8On?: boolean
+}
+
 export interface AccessOptions {
     /** Host the client should connect to. Optional, default is "localhost". */
     readonly host?: string
@@ -34,6 +38,8 @@ export interface AccessOptions {
     readonly secure?: boolean | "implicit"
     /** TLS options as in [tls.connect(options)](https://nodejs.org/api/tls.html#tls_tls_connect_options_callback), optional. */
     readonly secureOptions?: TLSConnectionOptions
+    /** Enable command options to send to server */
+    readonly commandOptions?: EnableCommandOptions
 }
 
 /** Prepares a data connection for transfer. */
@@ -229,7 +235,7 @@ export class Client {
      * * File structure (STRU F)
      * * Additional settings for FTPS (PBSZ 0, PROT P)
      */
-    async useDefaultSettings(): Promise<void> {
+    async useDefaultSettings(options : EnableCommandOptions): Promise<void> {
         const features = await this.features()
         // Use MLSD directory listing if possible. See https://tools.ietf.org/html/rfc3659#section-7.8:
         // "The presence of the MLST feature indicates that both MLST and MLSD are supported."
@@ -237,7 +243,7 @@ export class Client {
         this.availableListCommands = supportsMLSD ? LIST_COMMANDS_MLSD() : LIST_COMMANDS_DEFAULT()
         await this.send("TYPE I") // Binary mode
         await this.sendIgnoringError("STRU F") // Use file structure
-        await this.sendIgnoringError("OPTS UTF8 ON") // Some servers expect UTF-8 to be enabled explicitly and setting before login might not have worked.
+        await this.sendUtf8OnCommand(options) // Some servers expect UTF-8 to be enabled explicitly and setting before login might not have worked.
         if (supportsMLSD) {
             await this.sendIgnoringError("OPTS MLST type;size;modify;unique;unix.mode;unix.owner;unix.group;unix.ownername;unix.groupname;") // Make sure MLSD listings include all we can parse
         }
@@ -258,6 +264,7 @@ export class Client {
     async access(options: AccessOptions = {}): Promise<FTPResponse> {
         const useExplicitTLS = options.secure === true
         const useImplicitTLS = options.secure === "implicit"
+        const commandOptions = options.commandOptions ?? {}
         let welcome
         if (useImplicitTLS) {
             welcome = await this.connectImplicitTLS(options.host, options.port, options.secureOptions)
@@ -272,12 +279,20 @@ export class Client {
             secureOptions.host = secureOptions.host ?? options.host
             await this.useTLS(secureOptions)
         }
+
         // Set UTF-8 on before login in case there are non-ascii characters in user or password.
         // Note that this might not work before login depending on server.
-        await this.sendIgnoringError("OPTS UTF8 ON")
+        await this.sendUtf8OnCommand(commandOptions)
         await this.login(options.user, options.password)
-        await this.useDefaultSettings()
+        await this.useDefaultSettings(commandOptions)
         return welcome
+    }
+
+    async sendUtf8OnCommand(options : EnableCommandOptions): Promise<void> {
+        const sendCommand = options.utf8On === undefined ? true : options.utf8On
+        if (sendCommand) {
+            await this.sendIgnoringError("OPTS UTF8 ON")
+        }
     }
 
     /**

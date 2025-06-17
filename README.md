@@ -1,8 +1,8 @@
 # Basic FTP
 
-[![npm version](https://img.shields.io/npm/v/basic-ftp.svg)](https://www.npmjs.com/package/basic-ftp)
-[![npm downloads](https://img.shields.io/npm/dw/basic-ftp)](https://www.npmjs.com/package/basic-ftp)
-[![Node.js CI](https://github.com/patrickjuchli/basic-ftp/actions/workflows/nodejs.yml/badge.svg)](https://github.com/patrickjuchli/basic-ftp/actions/workflows/nodejs.yml)
+[![npm version](https://img.shields.io/npm/v/@yadickson/basic-ftp.svg)](https://www.npmjs.com/package/@yadickson/basic-ftp)
+[![npm downloads](https://img.shields.io/npm/dw/@yadickson/basic-ftp)](https://www.npmjs.com/package/@yadickson/basic-ftp)
+[![Node.js CI](https://github.com/yadickson/basic-ftp/actions/workflows/npm-build.yml/badge.svg)](https://github.com/yadickson/basic-ftp/actions/workflows/npm-build.yml)
 
 This is an FTP client library for Node.js. It supports FTPS over TLS, Passive Mode over IPv6, has a Promise-based API, and offers methods to operate on whole directories. Active Mode is not supported.
 
@@ -16,15 +16,15 @@ Node 10.0 or later is the only dependency.
 
 ## Installation
 
-`npm install basic-ftp`
+`npm install @yadickson/basic-ftp`
 
 ## Usage
 
 The first example will connect to an FTP server using TLS (FTPS), get a directory listing, upload a file and download it as a copy. Note that the FTP protocol doesn't allow multiple requests running in parallel.
 
 ```js
-const { Client } = require("basic-ftp") 
-// ESM: import { Client } from "basic-ftp"
+const { Client } = require("@yadickson/basic-ftp") 
+// ESM: import { Client } from "@yadickson/basic-ftp"
 
 example()
 
@@ -87,6 +87,7 @@ Get access to an FTP server. This method will connect to a server, optionally se
 - `password (string)` Password, default: guest
 - `secure (boolean | "implicit")` Explicit FTPS over TLS, default: false. Use "implicit" if you need support for legacy implicit FTPS.
 - `secureOptions` Options for TLS, same as for [tls.connect()](https://nodejs.org/api/tls.html#tls_tls_connect_options_callback) in Node.js.
+- `commandOptions` Command options to send to server { utf8On : true `by default` }.
 
 ---
 
