@@ -12,7 +12,7 @@ Prefer alternative transfer protocols like HTTPS or SFTP (SSH). FTP is a an old 
 
 ## Dependencies
 
-Node 10.0 or later is the only dependency.
+Node 16.0 or later is the only dependency.
 
 ## Installation
 
